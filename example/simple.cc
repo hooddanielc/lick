@@ -31,10 +31,11 @@ public:
   }
 };
 
-int main(int, char *[]) {
-  AddNumbers addNums;
-  addNums.setA(3);
-  addNums.setB(6);
-  std::cout << addNums.getSum() << std::endl;
-  return 0;
+FIXTURE(initialization) {
+  AddNumbers a;
+  EXPECT_EQ(a.getA(), 1) << "it does not initialize with 0";
+}
+
+int main(int argc, char *argv[]) {
+  return dj::lick::main(argc, argv);
 }
