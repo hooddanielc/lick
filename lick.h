@@ -17,11 +17,13 @@ limitations under the License.
 TODO
 --------------------------------------------------------------------------- */
 
-#ifdef _NOEXCEPT
-  #define noexcept _NOEXCEPT
-#endif
-
 #pragma once
+
+#ifdef _MSC_VER
+  #define NOEXCEPT
+#else
+  #define NOEXCEPT noexcept
+#endif
 
 #include <cassert>
 #include <cstddef>
@@ -97,7 +99,7 @@ class singleton_t final {
   singleton_t &operator=(const singleton_t &) = delete;
 
   /* The current instance of obj_t. Never null. */
-  static obj_t *get_instance() noexcept {
+  static obj_t *get_instance() NOEXCEPT {
     assert(instance);
     return instance;
   }
@@ -191,17 +193,17 @@ class opt_t final {
   public:
 
   /* TODO */
-  opt_t() noexcept
+  opt_t() NOEXCEPT
       : known(false) {}
 
   /* TODO */
-  opt_t(elem_t that) noexcept {
+  opt_t(elem_t that) NOEXCEPT {
     new (&elem) elem_t(std::move(that));
     known = true;
   }
 
   /* TODO */
-  opt_t(opt_t &&that) noexcept {
+  opt_t(opt_t &&that) NOEXCEPT {
     assert(&that);
     if (that.known) {
       new (&elem) elem_t(std::move(that.elem));
@@ -229,13 +231,13 @@ class opt_t final {
   }
 
   /* TODO */
-  operator bool () const noexcept {
+  operator bool () const NOEXCEPT {
     assert(this);
     return known;
   }
 
   /* TODO */
-  opt_t &operator=(opt_t &&that) noexcept {
+  opt_t &operator=(opt_t &&that) NOEXCEPT {
     assert(this);
     assert(&that);
     this->~opt_t();
@@ -244,14 +246,14 @@ class opt_t final {
   }
 
   /* TODO */
-  opt_t &operator=(const opt_t &that) noexcept {
+  opt_t &operator=(const opt_t &that) NOEXCEPT {
     assert(this);
     assert(&that);
     return *this = opt_t(that);
   }
 
   /* TODO */
-  const elem_t &get(const elem_t &def_elem) const noexcept {
+  const elem_t &get(const elem_t &def_elem) const NOEXCEPT {
     assert(this);
     assert(&def_elem);
     return known ? elem : def_elem;
@@ -295,7 +297,7 @@ struct config_t final {
   struct channel_t final {
 
     /* TODO */
-    std::ostream *get_strm() const noexcept {
+    std::ostream *get_strm() const NOEXCEPT {
       assert(this);
       return config_t::get_strm(output);
     }
@@ -309,38 +311,38 @@ struct config_t final {
   };  // config_t::channel_t
 
   /* A reasonable default configuration. */
-  config_t() noexcept
+  config_t() NOEXCEPT
       : prog_name(nullptr),
         pass_channel({ to_stdout, terse }),
         fail_channel({ to_stdout, verbose }),
         summary_output(to_stdout), use_color(true) {}
 
   /* Terminal codes for red text. */
-  const char *red() const noexcept {
+  const char *red() const NOEXCEPT {
     assert(this);
     return use_color ? "\033[1;31m" : "";
   }
 
   /* Terminal codes for green text. */
-  const char *green() const noexcept {
+  const char *green() const NOEXCEPT {
     assert(this);
     return use_color ? "\033[1;32m" : "";
   }
 
   /* Terminal codes for plain (that is, not red or green) text. */
-  const char *plain() const noexcept {
+  const char *plain() const NOEXCEPT {
     assert(this);
     return use_color ? "\033[0m" : "";
   }
 
   /* TODO */
-  std::ostream *get_summary_strm() const noexcept {
+  std::ostream *get_summary_strm() const NOEXCEPT {
     assert(this);
     return get_strm(summary_output);
   }
 
   /* TODO */
-  static std::ostream *get_strm(output_t output) noexcept {
+  static std::ostream *get_strm(output_t output) NOEXCEPT {
     std::ostream *result;
     switch (output) {
       case to_stdout: {
@@ -446,7 +448,7 @@ class expect_t final {
       }
 
       /* True iff. no expectation has failed. */
-      operator bool() const noexcept {
+      operator bool() const NOEXCEPT {
         assert(this);
         return ok;
       }
@@ -460,7 +462,7 @@ class expect_t final {
       }
 
       /* TODO */
-      static collector_t *get_instance() noexcept {
+      static collector_t *get_instance() NOEXCEPT {
         return singleton_t::get_instance();
       }
 
@@ -476,7 +478,7 @@ class expect_t final {
 
     /* Cache the source line number, as it can't change, and assume the
        expectation will not be met. */
-    explicit outcome_t(int line) noexcept
+    explicit outcome_t(int line) NOEXCEPT
         : line(line), ok(false) {
       assert(line > 0);
     }
@@ -607,7 +609,7 @@ class expect_t final {
   }
 
   /* True iff. the expectation passed. */
-  operator bool() const noexcept {
+  operator bool() const NOEXCEPT {
     assert(this);
     return outcome->ok;
   }
@@ -615,7 +617,7 @@ class expect_t final {
   /* We use this as a string-builder for the (optional) description of the
      expectation.  See the operator<< overload declared after the close
      of this namespace. */
-  std::ostream &get_strm() noexcept {
+  std::ostream &get_strm() NOEXCEPT {
     assert(this);
     return strm;
   }
@@ -678,7 +680,7 @@ class fixture_t final {
   }
 
   /* Run the fixture. */
-  void operator()() const noexcept {
+  void operator()() const NOEXCEPT {
     assert(this);
     try {
       func();
@@ -690,7 +692,7 @@ class fixture_t final {
   }
 
   /* The name of the fixture.  Never null or empty. */
-  const char *get_name() const noexcept {
+  const char *get_name() const NOEXCEPT {
     assert(this);
     return name;
   }
@@ -854,7 +856,7 @@ class parser_t final {
     }
 
     /* TODO */
-    virtual const char *what() const noexcept {
+    virtual const char *what() const NOEXCEPT {
       assert(this);
       if (what_cache.empty()) {
         std::ostringstream strm;
